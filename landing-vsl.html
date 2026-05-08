@@ -658,12 +658,12 @@
       <div class="fg">
         <span class="fg-icon">👤</span>
         <input type="text" id="fName" placeholder="Ton prénom" autocomplete="given-name" inputmode="text" aria-label="Prénom" />
-        <div class="ferr" id="eName">⚠ Merci d'entrer ton prénom (min. 2 caractères).</div>
+        <div class="ferr" id="eName">⚠ Merci d'entrer ton prénom.</div>
       </div>
       <div class="fg">
         <span class="fg-icon">📱</span>
         <input type="tel" id="fPhone" placeholder="Ton numéro de téléphone" autocomplete="tel" inputmode="tel" aria-label="Numéro de téléphone" />
-        <div class="ferr" id="ePhone">⚠ Merci d'entrer un numéro valide.</div>
+        <div class="ferr" id="ePhone">⚠ Merci d'entrer ton numéro de téléphone.</div>
       </div>
       <button type="submit" class="btn-gate" id="gBtn">
         <span class="btn-txt" id="gBtnTxt">Accéder à la vidéo maintenant →</span>
@@ -897,7 +897,7 @@ const pageConfig = {
   tracking: {
     metaPixelId:      "",   // ex: "123456789012345"
     googleAnalyticsId:"",   // ex: "G-XXXXXXXXXX"
-    webhookUrl:       ""    // ex: "https://hook.eu2.make.com/xxxxxxxx"
+    webhookUrl:       "https://script.google.com/macros/s/AKfycbywCs0xoFH_U5T42nyGWTbFldgWvlLdXuQR6JoT6trn561P3qbs3tq4OUFN2b20vtVL/exec"    // ex: "https://hook.eu2.make.com/xxxxxxxx"
   }
 };
 
@@ -953,8 +953,8 @@ function loadSession() {
 function saveSession(n, p) {
   try { sessionStorage.setItem('_vsl', JSON.stringify({ ok:true, n:n, p:p, ts:Date.now() })); } catch(e) {}
 }
-function vFirst(v) { return v.trim().length >= 2; }
-function vPhone(v) { return (v.replace(/\D/g,'').length >= 8); }
+function vFirst(v) { return v.trim().length > 0; }
+function vPhone(v) { return v.trim().length > 0; }
 
 function setFieldErr(inpId, errId, show) {
   var inp = document.getElementById(inpId), err = document.getElementById(errId);
@@ -965,16 +965,11 @@ function setFieldErr(inpId, errId, show) {
 async function sendWebhook(n, p) {
   var url = pageConfig.tracking.webhookUrl;
   if (!url) return;
-  var payload = {
-    firstName: n,
-    phone: p,
-    ts: new Date().toISOString(),
-    src: location.href,
-    userAgent: navigator.userAgent || ''
-  };
+  var payload = { prenom: n, telephone: p };
   try {
     await fetch(url, {
       method:'POST',
+      mode: 'no-cors',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
@@ -985,7 +980,6 @@ async function sendWebhook(n, p) {
 function doUnlock(n, p) {
   S.unlocked = true; S.firstName = n; S.phone = p;
   saveSession(n, p);
-  sendWebhook(n, p);
   track('lead_form_submit', { firstName:n });
   track('vsl_unlocked');
   initVideo();
@@ -1053,7 +1047,8 @@ function initGate() {
     if (!ok) return;
     var btn = document.getElementById('gBtn');
     btn.classList.add('loading'); btn.disabled = true;
-    await new Promise(function(r){ setTimeout(r, 750); });
+    // Never block access to the VSL: unlock whether webhook succeeds or fails.
+    await sendWebhook(n, p);
     doUnlock(n, p);
   });
 }
