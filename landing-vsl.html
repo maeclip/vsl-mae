@@ -9,6 +9,14 @@
   <meta property="og:description" content="Ce business méconnu me rapporte des milliers d'euros tous les mois." />
   <meta property="og:type" content="website" />
   <meta name="robots" content="noindex, nofollow" />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6YKHE9S3QK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6YKHE9S3QK');
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -922,6 +930,11 @@ function track(name, data) {
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push(Object.assign({ event: name }, data));
 }
+function fireGaEvent(name, data) {
+  if (typeof gtag !== 'undefined') {
+    try { gtag('event', name, data || {}); } catch(e) {}
+  }
+}
 
 function initTracking() {
   var px = pageConfig.tracking.metaPixelId;
@@ -981,7 +994,9 @@ function doUnlock(n, p) {
   S.unlocked = true; S.firstName = n; S.phone = p;
   saveSession(n, p);
   track('lead_form_submit', { firstName:n });
+  fireGaEvent('form_submit');
   track('vsl_unlocked');
+  fireGaEvent('vsl_view');
   initVideo();
   var gate = document.getElementById('gate');
   gate.style.transition = 'opacity 0.55s ease';
@@ -1358,6 +1373,7 @@ function init() {
 
   if (loadSession()) {
     initVideo();
+    fireGaEvent('vsl_view');
   } else {
     setupGatedVideoPreview();
   }
