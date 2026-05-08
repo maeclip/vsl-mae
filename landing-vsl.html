@@ -892,7 +892,8 @@ const pageConfig = {
   tracking: {
     metaPixelId:      "",   // ex: "123456789012345"
     googleAnalyticsId:"",   // ex: "G-XXXXXXXXXX"
-    webhookUrl:       ""    // ex: "https://hooks.zapier.com/hooks/catch/xxx/yyy/"
+    googleSheetsUrl:  "https://script.google.com/macros/s/AKfycbwcWjbdCtBx_l-3Vxt9kKMXSaoirnkGBgmAHXp9yxxJLbqSihjWMAGuGRLKL1pKptY/exec",   // ex: "https://script.google.com/macros/s/AKfycb.../exec"
+    webhookUrl:       ""    // fallback option (Zapier/Make/etc.)
   }
 };
 
@@ -958,11 +959,22 @@ function setFieldErr(inpId, errId, show) {
 }
 
 async function sendWebhook(n, p) {
-  var url = pageConfig.tracking.webhookUrl;
+  var url = pageConfig.tracking.googleSheetsUrl || pageConfig.tracking.webhookUrl;
   if (!url) return;
+  var payload = {
+    firstName: n,
+    phone: p,
+    ts: new Date().toISOString(),
+    src: location.href,
+    userAgent: navigator.userAgent || ''
+  };
   try {
-    await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ firstName:n, phone:p, ts:new Date().toISOString(), src:location.href }) });
+    await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    track('lead_sent_to_webhook');
   } catch(e) { console.warn('Webhook:', e); }
 }
 
