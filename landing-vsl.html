@@ -219,6 +219,7 @@
       border:1px solid rgba(124,58,237,0.28);
       animation: glowPulse 5s ease-in-out infinite;
     }
+    .video-box.locked { filter: blur(7px); }
     .video-box iframe,
     .video-box video {
       position:absolute; top:0; left:0; width:100%; height:100%; border:none;
@@ -850,7 +851,7 @@ const pageConfig = {
   },
   video: {
     type:         "youtube",   // "youtube" | "mp4"
-    youtubeUrl:   "",          // ex: "https://www.youtube.com/watch?v=XXXXXXXXXXX"
+    youtubeUrl:   "https://youtu.be/Ggxevm3Ivjc",          // ex: "https://www.youtube.com/watch?v=XXXXXXXXXXX"
     mp4Url:       "",          // ex: "/video/vsl.mp4"
     thumbnailUrl: ""           // ex: "/img/thumb.jpg"
   },
@@ -1065,6 +1066,7 @@ function ytId(url) {
 function initVideo() {
   var box = document.getElementById('videoBox'), ph = document.getElementById('videoPh');
   if (!box || !ph) return;
+  box.classList.remove('locked');
   ['ytPlayer','mp4Player'].forEach(function(id) {
     var old = document.getElementById(id);
     if (old) old.remove();
@@ -1077,7 +1079,7 @@ function initVideo() {
       ph.style.display = 'none';
       var iframe = document.createElement('iframe');
       iframe.id = 'ytPlayer';
-      iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?enablejsapi=1&rel=0&modestbranding=1&color=white';
+      iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?enablejsapi=1&rel=0&modestbranding=1&color=white&autoplay=1&playsinline=1';
       iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
       iframe.allowFullscreen = true;
       iframe.title = 'VSL';
@@ -1117,8 +1119,10 @@ function videoPreviewStyle(cfg) {
 
 function setupGatedVideoPreview() {
   var ph = document.getElementById('videoPh');
+  var box = document.getElementById('videoBox');
   var cfg = pageConfig.video;
   var prev = videoPreviewStyle(cfg);
+  if (box) box.classList.add('locked');
   ph.className = 'video-ph video-ph-gated';
   ph.style.display = 'flex';
   ph.style.backgroundImage = prev.bg || '';
