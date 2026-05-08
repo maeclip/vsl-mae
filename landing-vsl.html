@@ -892,8 +892,7 @@ const pageConfig = {
   tracking: {
     metaPixelId:      "",   // ex: "123456789012345"
     googleAnalyticsId:"",   // ex: "G-XXXXXXXXXX"
-    googleSheetsUrl:  "https://script.google.com/macros/s/AKfycbz4d43r0x9gSehpoXUrLU98s6XyYMnt0NV0fn14XKepPAlFE128-j_2TJX5E1WYNHPzUQ/exec",   // ex: "https://script.google.com/macros/s/AKfycb.../exec"
-    webhookUrl:       ""    // fallback option (Zapier/Make/etc.)
+    webhookUrl:       ""    // ex: "https://hook.eu2.make.com/xxxxxxxx"
   }
 };
 
@@ -959,7 +958,7 @@ function setFieldErr(inpId, errId, show) {
 }
 
 async function sendWebhook(n, p) {
-  var url = pageConfig.tracking.googleSheetsUrl || pageConfig.tracking.webhookUrl;
+  var url = pageConfig.tracking.webhookUrl;
   if (!url) return;
   var payload = {
     firstName: n,
@@ -969,21 +968,11 @@ async function sendWebhook(n, p) {
     userAgent: navigator.userAgent || ''
   };
   try {
-    // Google Apps Script blocks many cross-origin JSON requests.
-    // Use no-cors form payload first (best effort), then GET beacon fallback.
-    var form = new URLSearchParams(payload);
     await fetch(url, {
       method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: form.toString(),
-      mode: 'no-cors'
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
     });
-
-    // Fallback ping (works even when CORS hides response details)
-    var q = new URLSearchParams(payload).toString();
-    var img = new Image();
-    img.src = url + (url.indexOf('?') === -1 ? '?' : '&') + q;
-
     track('lead_sent_to_webhook');
   } catch(e) { console.warn('Webhook:', e); }
 }
